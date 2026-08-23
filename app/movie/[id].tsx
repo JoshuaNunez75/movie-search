@@ -77,7 +77,7 @@ export default function MovieDetail() {
                     <Text style={styles.sectionLabel}>Starring</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         {movie.credits.cast.slice(0, 8).map((actor) => (
-                            <View key={actor.id} style={styles.castItem}>
+                            <Pressable key={actor.id} style={styles.castItem} onPress={() => router.push(`/actor/${actor.id}`)}>
                                 {actor.profile_path ? (
                                     <Image
                                         source={{ uri: `https://image.tmdb.org/t/p/w200${actor.profile_path}` }}
@@ -89,7 +89,7 @@ export default function MovieDetail() {
                                 <Text style={styles.castName} numberOfLines={2}>
                                     {actor.name}
                                 </Text>
-                            </View>
+                            </Pressable>
                         ))}
                     </ScrollView>
                 </View>
