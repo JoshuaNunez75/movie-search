@@ -1,11 +1,20 @@
 import { useState } from "react";
-import { Button, Text, TextInput, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+
+type Movie = {
+  id: number;
+  title: string;
+  poster_path: string | null;
+  release_date: string;
+};
 
 export default function Index() {
   const [query, setQuery] = useState("");
-  const [resultCount, setResultCount] = useState<number | null>(null);
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
 
-  async function testSearch() {
+    async function searchMovies() {
+    if (query.trim() === "") return;
     const response = await fetch(
       `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(query)}`,
       {
@@ -15,19 +24,99 @@ export default function Index() {
       }
     );
     const data = await response.json();
-    setResultCount(data.results.length);
+    setMovies(data.results);
+    setHasSearched(true);
   }
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
-      <TextInput
-        placeholder="Search a movie title"
-        value={query}
-        onChangeText={setQuery}
-        style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, width: 220, marginBottom: 10 }}
-      />
-      <Button title="Test Search" onPress={testSearch} />
-      {resultCount !== null && <Text style={{ marginTop: 16 }}>Found {resultCount} results</Text>}
-    </View>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Movie Search</Text>
+
+      <View style={styles.searchRow}>
+        <TextInput
+          placeholder="Search a movie title"
+          placeholderTextColor="#888"
+          value={query}
+          onChangeText={setQuery}
+          returnKeyType="search"
+          onSubmitEditing={searchMovies}
+          style={styles.input}
+        />
+        <Pressable style={styles.searchButton} onPress={searchMovies}>
+          <Text style={styles.searchButtonText}>Search</Text>
+        </Pressable>
+      </View>
+
+      {!hasSearched && movies.length === 0 && (
+        <Text style={styles.hint}>Search for a movie above to get started.</Text>
+      )}
+      {hasSearched && movies.length === 0 && (
+        <Text style={styles.hint}>No results found — try a different title.</Text>
+      )}
+
+      <View style={{ width: "100%" }}>
+        {movies.map((movie) => (
+          <View key={movie.id} style={styles.movieRow}>
+            {movie.poster_path ? (
+              <Image
+                source={{ uri: `https://image.tmdb.org/t/p/w200${movie.poster_path}` }}
+                style={styles.poster}
+              />
+            ) : (
+              <View style={[styles.poster, styles.posterPlaceholder]} />
+            )}
+            <View style={styles.movieInfo}>
+              <Text style={styles.movieTitle}>{movie.title}</Text>
+              <Text style={styles.movieYear}>
+                {movie.release_date ? movie.release_date.slice(0, 4) : "Unknown year"}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </View>
+    </ScrollView>
   );
 }
+
+
+const styles = StyleSheet.create({
+  container: {
+    flexGrow: 1,
+    backgroundColor: "#121212",
+    alignItems: "center",
+    padding: 20,
+    paddingTop: 60,
+  },
+  title: { fontSize: 26, fontWeight: "700", color: "#f5f5f5", marginBottom: 20 },
+  searchRow: { flexDirection: "row", width: "100%", marginBottom: 16 },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#333",
+    borderRadius: 8,
+    padding: 10,
+    marginRight: 8,
+    backgroundColor: "#1e1e1e",
+    color: "#f5f5f5",
+  },
+  searchButton: {
+    backgroundColor: "#d4a017",
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    justifyContent: "center",
+  },
+  searchButtonText: { color: "#121212", fontWeight: "700" },
+  hint: { color: "#a3a3a3", fontStyle: "italic", marginTop: 20, textAlign: "center" },
+  movieRow: {
+    flexDirection: "row",
+    backgroundColor: "#1e1e1e",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+  },
+  poster: { width: 60, height: 90, borderRadius: 4, marginRight: 12 },
+  posterPlaceholder: { backgroundColor: "#333" },
+  movieInfo: { flex: 1, justifyContent: "center" },
+  movieTitle: { color: "#f5f5f5", fontWeight: "600", fontSize: 15, marginBottom: 4 },
+  movieYear: { color: "#a3a3a3", fontSize: 13 },
+});
