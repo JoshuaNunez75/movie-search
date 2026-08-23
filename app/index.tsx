@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 type Movie = {
   id: number;
@@ -12,20 +12,33 @@ export default function Index() {
   const [query, setQuery] = useState("");
   const [movies, setMovies] = useState<Movie[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
     async function searchMovies() {
     if (query.trim() === "") return;
-    const response = await fetch(
-      `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(query)}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.EXPO_PUBLIC_TMDB_TOKEN}`,
-        },
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch(
+        `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(query)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.EXPO_PUBLIC_TMDB_TOKEN}`,
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Request failed");
       }
-    );
-    const data = await response.json();
-    setMovies(data.results);
-    setHasSearched(true);
+      const data = await response.json();
+      setMovies(data.results);
+      setHasSearched(true);
+    } catch (err) {
+      setError("Something went wrong. Check your connection and try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -47,10 +60,12 @@ export default function Index() {
         </Pressable>
       </View>
 
-      {!hasSearched && movies.length === 0 && (
+      {loading && <ActivityIndicator size="large" color="#d4a017" style={{ marginTop: 20 }} />}
+      {error !== "" && <Text style={styles.hint}>{error}</Text>}
+      {!loading && !hasSearched && movies.length === 0 && (
         <Text style={styles.hint}>Search for a movie above to get started.</Text>
       )}
-      {hasSearched && movies.length === 0 && (
+      {!loading && hasSearched && movies.length === 0 && error === "" && (
         <Text style={styles.hint}>No results found — try a different title.</Text>
       )}
 
