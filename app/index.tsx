@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 
@@ -16,8 +16,23 @@ export default function Index() {
   const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [popularMovies, setPopularMovies] = useState<Movie[]>([]);
 
-    async function searchMovies() {
+  useEffect(() => {
+    fetchPopularMovies();
+  }, []);
+
+  async function fetchPopularMovies() {
+    const response = await fetch("https://api.themoviedb.org/3/movie/popular", {
+      headers: {
+        Authorization: `Bearer ${process.env.EXPO_PUBLIC_TMDB_TOKEN}`,
+      },
+    });
+    const data = await response.json();
+    setPopularMovies(data.results);
+  }
+
+  async function searchMovies() {
     if (query.trim() === "") return;
     setLoading(true);
     setError("");
@@ -64,33 +79,33 @@ export default function Index() {
 
       {loading && <ActivityIndicator size="large" color="#d4a017" style={{ marginTop: 20 }} />}
       {error !== "" && <Text style={styles.hint}>{error}</Text>}
-      {!loading && !hasSearched && movies.length === 0 && (
-        <Text style={styles.hint}>Search for a movie above to get started.</Text>
-      )}
       {!loading && hasSearched && movies.length === 0 && error === "" && (
         <Text style={styles.hint}>No results found — try a different title.</Text>
       )}
 
-      <View style={{ width: "100%" }}>
-        {movies.map((movie) => (
-                    <Pressable key={movie.id} style={styles.movieRow} onPress={() => router.push(`/movie/${movie.id}`)}>
-            {movie.poster_path ? (
-              <Image
-                source={{ uri: `https://image.tmdb.org/t/p/w200${movie.poster_path}` }}
-                style={styles.poster}
-              />
-            ) : (
-              <View style={[styles.poster, styles.posterPlaceholder]} />
-            )}
-            <View style={styles.movieInfo}>
-              <Text style={styles.movieTitle}>{movie.title}</Text>
-              <Text style={styles.movieYear}>
-                {movie.release_date ? movie.release_date.slice(0, 4) : "Unknown year"}
-              </Text>
-            </View>
-          </Pressable>
-        ))}
-      </View>
+      {!loading && (
+        <View style={{ width: "100%" }}>
+          <Text style={styles.sectionLabel}>{hasSearched ? "Results" : "Popular Movies"}</Text>
+          {(hasSearched ? movies : popularMovies).map((movie) => (
+            <Pressable key={movie.id} style={styles.movieRow} onPress={() => router.push(`/movie/${movie.id}`)}>
+              {movie.poster_path ? (
+                <Image
+                  source={{ uri: `https://image.tmdb.org/t/p/w200${movie.poster_path}` }}
+                  style={styles.poster}
+                />
+              ) : (
+                <View style={[styles.poster, styles.posterPlaceholder]} />
+              )}
+              <View style={styles.movieInfo}>
+                <Text style={styles.movieTitle}>{movie.title}</Text>
+                <Text style={styles.movieYear}>
+                  {movie.release_date ? movie.release_date.slice(0, 4) : "Unknown year"}
+                </Text>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -124,6 +139,7 @@ const styles = StyleSheet.create({
   },
   searchButtonText: { color: "#121212", fontWeight: "700" },
   hint: { color: "#a3a3a3", fontStyle: "italic", marginTop: 20, textAlign: "center" },
+  sectionLabel: { color: "#f5f5f5", fontWeight: "600", fontSize: 14, marginBottom: 8, alignSelf: "flex-start" },
   movieRow: {
     flexDirection: "row",
     backgroundColor: "#1e1e1e",
