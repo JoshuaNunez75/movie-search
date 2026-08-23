@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useRouter } from "expo-router";
 
 type Movie = {
   id: number;
@@ -9,6 +10,7 @@ type Movie = {
 };
 
 export default function Index() {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [movies, setMovies] = useState<Movie[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
@@ -71,7 +73,7 @@ export default function Index() {
 
       <View style={{ width: "100%" }}>
         {movies.map((movie) => (
-          <View key={movie.id} style={styles.movieRow}>
+                    <Pressable key={movie.id} style={styles.movieRow} onPress={() => router.push(`/movie/${movie.id}`)}>
             {movie.poster_path ? (
               <Image
                 source={{ uri: `https://image.tmdb.org/t/p/w200${movie.poster_path}` }}
@@ -86,7 +88,7 @@ export default function Index() {
                 {movie.release_date ? movie.release_date.slice(0, 4) : "Unknown year"}
               </Text>
             </View>
-          </View>
+          </Pressable>
         ))}
       </View>
     </ScrollView>
