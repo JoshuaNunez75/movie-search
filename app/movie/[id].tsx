@@ -16,6 +16,9 @@ type MovieDetails = {
     credits: {
         cast: { id: number; name: string; profile_path: string | null }[];
     };
+    recommendations: {
+        results: { id: number; title: string; poster_path: string | null }[];
+    };
 };
 
 export default function MovieDetail() {
@@ -30,7 +33,7 @@ export default function MovieDetail() {
 
     async function fetchMovie() {
         setLoading(true);
-        const response = await fetch(`https://api.themoviedb.org/3/movie/${id}?append_to_response=credits`, {
+        const response = await fetch(`https://api.themoviedb.org/3/movie/${id}?append_to_response=credits,recommendations`, {
             headers: {
                 Authorization: `Bearer ${process.env.EXPO_PUBLIC_TMDB_TOKEN}`,
             },
@@ -91,6 +94,32 @@ export default function MovieDetail() {
                     </ScrollView>
                 </View>
             )}
+            {movie.recommendations.results.length > 0 && (
+                <View style={styles.relatedSection}>
+                    <Text style={styles.sectionLabel}>Related Movies</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        {movie.recommendations.results.slice(0, 10).map((related) => (
+                            <Pressable
+                                key={related.id}
+                                style={styles.relatedItem}
+                                onPress={() => router.push(`/movie/${related.id}`)}
+                            >
+                                {related.poster_path ? (
+                                    <Image
+                                        source={{ uri: `https://image.tmdb.org/t/p/w200${related.poster_path}` }}
+                                        style={styles.relatedPoster}
+                                    />
+                                ) : (
+                                    <View style={[styles.relatedPoster, styles.castPhotoPlaceholder]} />
+                                )}
+                                <Text style={styles.relatedTitle} numberOfLines={2}>
+                                    {related.title}
+                                </Text>
+                            </Pressable>
+                        ))}
+                    </ScrollView>
+                </View>
+            )}
         </ScrollView>
     );
 }
@@ -115,4 +144,8 @@ const styles = StyleSheet.create({
 
     backButton: { alignSelf: "flex-start", marginBottom: 16 },
     backButtonText: { color: "#d4a017", fontSize: 16, fontWeight: "600" },
+    relatedSection: { width: "100%", marginBottom: 16 },
+    relatedItem: { width: 100, marginRight: 12 },
+    relatedPoster: { width: 100, height: 150, borderRadius: 6, marginBottom: 6 },
+    relatedTitle: { color: "#e0e0e0", fontSize: 12, textAlign: "center" },
 });
