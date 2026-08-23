@@ -14,7 +14,7 @@ type MovieDetails = {
     overview: string;
     genres: { id: number; name: string }[];
     credits: {
-        cast: { id: number; name: string }[];
+        cast: { id: number; name: string; profile_path: string | null }[];
     };
 };
 
@@ -70,9 +70,26 @@ export default function MovieDetail() {
             <Text style={styles.status}>{movie.status}</Text>
             <Text style={styles.overview}>{movie.overview}</Text>
             {movie.credits.cast.length > 0 && (
-                <Text style={styles.cast}>
-                    Starring: {movie.credits.cast.slice(0, 5).map((actor) => actor.name).join(", ")}
-                </Text>
+                <View style={styles.castSection}>
+                    <Text style={styles.sectionLabel}>Starring</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        {movie.credits.cast.slice(0, 8).map((actor) => (
+                            <View key={actor.id} style={styles.castItem}>
+                                {actor.profile_path ? (
+                                    <Image
+                                        source={{ uri: `https://image.tmdb.org/t/p/w200${actor.profile_path}` }}
+                                        style={styles.castPhoto}
+                                    />
+                                ) : (
+                                    <View style={[styles.castPhoto, styles.castPhotoPlaceholder]} />
+                                )}
+                                <Text style={styles.castName} numberOfLines={2}>
+                                    {actor.name}
+                                </Text>
+                            </View>
+                        ))}
+                    </ScrollView>
+                </View>
             )}
         </ScrollView>
     );
@@ -88,7 +105,14 @@ const styles = StyleSheet.create({
     tagline: { color: "#a3a3a3", fontStyle: "italic", marginBottom: 8, textAlign: "center" },
     status: { color: "#a3a3a3", fontSize: 13, marginBottom: 16 },
     overview: { color: "#e0e0e0", lineHeight: 20, marginBottom: 16 },
-    cast: { color: "#e0e0e0", textAlign: "center" },
+
+    castSection: { width: "100%", marginBottom: 16 },
+    sectionLabel: { color: "#f5f5f5", fontWeight: "600", fontSize: 14, marginBottom: 8 },
+    castItem: { width: 80, marginRight: 12, alignItems: "center" },
+    castPhoto: { width: 70, height: 70, borderRadius: 35, marginBottom: 6 },
+    castPhotoPlaceholder: { backgroundColor: "#333" },
+    castName: { color: "#e0e0e0", fontSize: 12, textAlign: "center" },
+    
     backButton: { alignSelf: "flex-start", marginBottom: 16 },
     backButtonText: { color: "#d4a017", fontSize: 16, fontWeight: "600" },
 });
