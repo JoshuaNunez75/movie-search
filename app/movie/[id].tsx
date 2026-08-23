@@ -49,7 +49,7 @@ export default function MovieDetail() {
     }
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView style={{ backgroundColor: "#121212" }} contentContainerStyle={styles.container}>
             <Pressable onPress={() => router.back()} style={styles.backButton}>
                 <Text style={styles.backButtonText}>‹ Back</Text>
             </Pressable>
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     castPhoto: { width: 70, height: 70, borderRadius: 35, marginBottom: 6 },
     castPhotoPlaceholder: { backgroundColor: "#333" },
     castName: { color: "#e0e0e0", fontSize: 12, textAlign: "center" },
-    
+
     backButton: { alignSelf: "flex-start", marginBottom: 16 },
     backButtonText: { color: "#d4a017", fontSize: 16, fontWeight: "600" },
 });

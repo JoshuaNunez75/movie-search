@@ -44,7 +44,7 @@ export default function Index() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView style={{ backgroundColor: "#121212" }} contentContainerStyle={styles.container}>
       <Text style={styles.title}>Movie Search</Text>
 
       <View style={styles.searchRow}>
